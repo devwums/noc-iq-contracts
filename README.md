@@ -116,6 +116,87 @@ cd sla_calculator
 cargo build --target wasm32-unknown-unknown --release
 ```
 
+Expected artifact:
+
+- `sla_calculator/target/wasm32-unknown-unknown/release/sla_calculator.wasm`
+
+## Deploy-Oriented Workflow
+
+The current repository does not ship deployment scripts, but the existing crate
+is ready for a manual Soroban deployment flow.
+
+### 1. Build the release WASM
+
+```bash
+cd sla_calculator
+cargo build --target wasm32-unknown-unknown --release
+```
+
+### 2. Deploy the contract
+
+Example:
+
+```bash
+soroban contract deploy \
+  --wasm target/wasm32-unknown-unknown/release/sla_calculator.wasm \
+  --source-account <source-account> \
+  --network <network-name>
+```
+
+Save the returned contract ID for later invocation.
+
+### 3. Initialize the contract
+
+The current `initialize` function accepts:
+
+- `admin: Address`
+- `operator: Address`
+
+Example:
+
+```bash
+soroban contract invoke \
+  --id <contract-id> \
+  --source-account <source-account> \
+  --network <network-name> \
+  -- initialize \
+  --admin <admin-address> \
+  --operator <operator-address>
+```
+
+### 4. Read contract state
+
+Useful follow-up calls after deployment:
+
+```bash
+soroban contract invoke \
+  --id <contract-id> \
+  --source-account <source-account> \
+  --network <network-name> \
+  -- get_config \
+  --severity critical
+```
+
+```bash
+soroban contract invoke \
+  --id <contract-id> \
+  --source-account <source-account> \
+  --network <network-name> \
+  -- get_stats
+```
+
+## Artifact Guidance
+
+For this repository, the main artifact contributors and operators should expect is:
+
+- release WASM for deployment:
+  `sla_calculator/target/wasm32-unknown-unknown/release/sla_calculator.wasm`
+
+Optional local outputs include:
+
+- debug build artifacts under `sla_calculator/target/debug`
+- test binaries under `sla_calculator/target/debug/deps`
+
 ## Verification Notes
 
 As of the latest stabilization pass:
